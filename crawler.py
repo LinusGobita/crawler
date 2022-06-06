@@ -56,5 +56,4 @@ def grab_all_hrefs_from_plz(plz, offerType):
 if __name__ == "__main__":
 
 #    grab_all_hrefs_from_plz(8048, "buy")
-
     get_all_ch_zip()
