@@ -1,5 +1,6 @@
 import datetime
 from enum import Enum
+from . import Lister
 
 
 class ListingType(Enum):
@@ -16,7 +17,7 @@ class Listing:
                  listing_address_locality: str, listing_address_region: str, listing_geo_x: float, listing_geo_y: float,
                  listing_price_currency: str, listing_price_rent_gross: float, listing_price_rent_interval: str,
                  listing_price_buy_gross: float, listing_price_buy_extra: float, listing_numberOfRooms: float,
-                 listing_livingSpace: float, lister_id: str):
+                 listing_livingSpace: float, lister_id: str, lister_obj: Lister):
         self.listing_id = listing_id
         self.listing_title = listing_title
         self.listing_description = listing_description
@@ -42,3 +43,4 @@ class Listing:
         self.listing_numberOfRooms = listing_numberOfRooms
         self.listing_livingSpace = listing_livingSpace
         self.lister_id = lister_id
+        self.lister = lister_obj
