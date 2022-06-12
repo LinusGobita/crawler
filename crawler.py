@@ -1,59 +1,236 @@
+import json
+import logging
 import os
-from random import random
+import random
+import time
+
+import assign as assign
 import pandas as pd
-from time import sleep
+import time
 
 import requests
 from bs4 import BeautifulSoup
 
+
+############ Get URLs ############
+base_url = "https://www.homegate.ch"
+
+class Thing:
+    def __init__(self, typ, jsonReader, sql_table, sql_row, value=0,):
+        self.typ = typ
+        self.jsonReader = jsonReader
+        self.sql_table = sql_table
+        self.sql_row = sql_row
+        self.value = value
+
+def take_a_break(infos):
+    #Timer
+    sleep_min = 1
+    sleep_max = 5
+    sleeptimes = list(range(sleep_min, sleep_max, 1))
+    t = random.choice(sleeptimes)
+
+    while t != 0:
+        print(f"Take a Coffe for {t} secounts", end=' ')
+        time.sleep(1)
+        print(end='\r')
+        t -= 1
+    print(f'{infos}')
+
+def get_things_list_from_json():
+    list_of_things = []
+    try:
+        with open("./things.json") as f:
+            data = json.load(f)
+            for item in data:
+                typ = item
+                data = data[typ]
+                json_Reader = data[0]
+                sql = data[1]
+                sql_table = sql[0]
+                sql_row = sql[1]
+                thing = Thing(typ, json_Reader, sql_table, sql_row)
+                list_of_things.append(thing)
+
+    except Exception as err:
+        logging.error(err)
+
+    return list_of_things
+
+
+def grab_all_hrefs_from_ch_with_offertType(offerType):
+    href_list_ch = []
+
+
+    zip_in_ch = get_all_ch_zip()
+
+    for zip in zip_in_ch:
+        take_a_break(f"next zip will be = {zip} ")
+        href_list_ch.append(grab_all_hrefs_from_plz(zip, offerType))
+
+    return href_list_ch
+
+def grab_all_hrefs_from_plz(zip, offerType):
+
+    #Queck the Input
+    art = ["kaufen", "mieten"]
+    if str(offerType).lower() not in art:
+        logging.error("falsche eingabe! Bitte mieten oder kaufen eingeben")
+        return
+
+    #Vatiablen
+    href_list = []
+    page = 0
+    #print(url_offert)
+
+    while True:
+        page += 1
+        url_offert = base_url + "/" + str(offerType) + '/immobilien/plz-' + str(zip) + "/trefferliste?ep=" + str(page)
+
+        try:
+            response = requests.get(url_offert)
+            soup = BeautifulSoup(response.text, "html.parser")
+            listingsGroup = BeautifulSoup(str(soup.find("div", {"data-test": "result-list"})), "html.parser")
+            listingsList = listingsGroup.find_all("a", {"data-test": "result-list-item"})
+        except Exception as err:
+            logging.error(f"err by url. {url_offert}", err)
+
+        for listing in listingsList:
+            #print(f'page :{page} grab Advertisement {listing["href"]} ')
+            href_list.append(listing["href"])
+
+        if page > 50:
+            break
+        if len(listingsList) < 10:
+            print(f'\nzip: {zip} has {page} page and {len(href_list)} inserat')
+            break
+    return href_list
+
+############ Get Data ############
 def get_all_ch_zip():
 
     plz_flie = pd.read_csv('./Postleitzahlen-Schweiz.csv', header=None)
     plz_flie.head()
     zip_in_ch = plz_flie[0]
 
-    for zip in zip_in_ch:
-        print(zip)
+    return zip_in_ch
+
+def get_json_from_href(href):
+
+    url = base_url + href
+
+    try:
+        r = requests.get(url)
+        soup = BeautifulSoup(r.content,'html.parser')
+
+    except Exception as err:
+        logging.error(f"err by url: {url} ", err)
+
+    for script in soup.find_all('script'):
+        the_hole_json = script.text.split('window.__INITIAL_STATE__=')
+
+        if len(the_hole_json) > 1:
+            try:
+                dataNotFormatet = json.loads(the_hole_json[1].split('__INITIAL_STATE__=')[0])
+                return dataNotFormatet
+
+            except Exception as e:
+                logging.warning(e)
+
+def get_listing_from_href(href):
+    js = get_json_from_href(href)
+    js2 = js["listing"]
+    return js2["listing"]
+
+def get_thing_from_listing(listing, thing):
+    try:
+        leng = len(thing.jsonReader)
+
+        if leng == 1:
+            thing.value = listing[thing.jsonReader[0]]
+        elif leng == 2:
+            thing.value = listing[thing.jsonReader[0]][thing.jsonReader[1]]
+        elif leng == 3:
+            thing.value = listing[thing.jsonReader[0]][thing.jsonReader[1]][thing.jsonReader[2]]
+        elif leng == 4:
+            thing.value = listing[thing.jsonReader[0]][thing.jsonReader[1]][thing.jsonReader[2]][thing.jsonReader[3]]
+        elif leng == 5:
+            thing.value = listing[thing.jsonReader[0]][thing.jsonReader[1]][thing.jsonReader[2]][thing.jsonReader[3]][thing.jsonReader[4]]
+
+        return leng
+    except Exception as err:
+        logging.info(f"Datentyp {err} nicht gefunden {thing.value}")
+
+############ Get Data  Deep impact############
+class Characheristic:
+    def __init__(self, typ, value):
+        self.typ = typ
+        self.value = value
 
 
-def grab_all_hrefs_from_ch(offerType):
-    #Timer
-    sleep_min = 1
-    sleep_max = 5
-    sleeptimes = list(range(sleep_min, sleep_max, 1))
 
-def grab_all_hrefs_from_plz(plz, offerType):
-    #"obj = mieten oder kaufen"
+def get_listing_info_from_listing(listing):
+    localization = listing["localization"]
+    de = localization["de"]
+    text = de["text"]
+    title = text["title"]
+    description = text["description"]
+    offerType = listing["offerType"]
+    deleted = listing["deleted"]
+    id = listing["id"]
+    categories = listing["categories"]
 
-    base_url_rent = 'https://www.homegate.ch/mieten/immobilien/plz-'
-    base_url_buy  = 'https://www.homegate.ch/kaufen/immobilien/plz-'
+    address = listing["address"]
+    street = address["street"]
+    postalCode = address["postalCode"]
+    locality = address["locality"]
+    region = address["region"]
 
-    link_list = []
+    geoCoordinates = address["geoCoordinates"]
+    latitude = geoCoordinates["latitude"]
+    longitude = geoCoordinates["longitude"]
 
-    os.listdir()
-    page = 0
+    attachments = de["attachments"]
+    url_images = []
+    for attachment in attachments:
+        if attachment["type"] == "IMAGE":
+            url_images.append(attachment["url"])
 
-    if str(offerType).lower() == "rent":
-        url = base_url_rent + str(plz) + "/trefferliste"
-    elif str(offerType).lower() == "buy":
-        url = base_url_buy + str(plz) + "/trefferliste"
+    if listing["offerType"] == "BUY":
+        prices = listing["prices"]
+        currency = prices["currency"]
 
+        buy = prices["buy"]
+        area = buy["area"]
+        price_buy = buy["price"]
+    elif listing["offerType"] == "RENT":
+        prices = listing["prices"]
+        currency = prices["currency"]
 
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, "html.parser")
-    listingsGroup = BeautifulSoup(str(soup.find("div", {"data-test": "result-list"})), "html.parser")
-    listingsList = listingsGroup.find_all("a", {"data-test": "result-list-item"})
+        rent = prices["rent"]
+        interval = rent["interval"]
+        gross = rent["gross"]
 
-    for listing in listingsList:
-        # print(f'page :{page} grab Advertisement {listing["href"]} ')
-        link_list.append(listing["href"])
+def get_lister_from_listing(listing):
+    lister = listing["lister"]
+    phone = lister["phone"]
+    website = lister["website"]
+    id = lister["id"]
+    type = lister["type"]
 
-    for listening in link_list:
-        print(listening)
+def get_characheristics_from_listing(listing):
+    all_characheristics_in_list = []
+    characheristics = listing["characteristics"]
 
+    for item in characheristics:
+        characheristic = item
+        value = characheristics[characheristic]
+        characheristic = Characheristic(characheristic, value)
+        all_characheristics_in_list.append(characheristic)
 
+def get_title(listing):
+    print(listing)
+    title = listing["localization"]["de"]["text"]["title"]
+    print(title)
+    return title
 
-if __name__ == "__main__":
-
-#    grab_all_hrefs_from_plz(8048, "buy")
-    get_all_ch_zip()

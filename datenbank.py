@@ -1,7 +1,6 @@
 import mariadb
 import sys
 
-
 def mysql_connect(host, port, database, user, password):
     try:
         global cur, conn
