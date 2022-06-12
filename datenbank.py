@@ -2,18 +2,18 @@ import mariadb
 import sys
 
 def mysql_connect(host, port, database, user, password):
+    global cur, conn
     try:
-        global cur, conn
         conn = mariadb.connect(
-            user="root",
-            password="mariadbpw",
-            host="192.168.10.135",
-            port=3306,
-            database="homegate"
+            user=user,
+            password=password,
+            host=host,
+            port=int(port),
+            database=database
         )
     except mariadb.Error as e:
         print(f"Error connecting to MariaDB Platform: {e}")
-        sys.exit(1)
+        exit(1)
     cur = conn.cursor()
 
 
