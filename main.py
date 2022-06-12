@@ -5,13 +5,10 @@ import tools
 if __name__ == "__main__":
 
 
-    iCrawler.save_one_listing_to_txt(3001912432)
+#    iCrawler.save_one_listing_to_txt(3001919911)
 
+    iCrawler.beispiel_SQL_ohne_klassen(3001919911)
 
-    iCrawler.get_all_listing_from_ch()
-
-
-
-
+#    iCrawler.get_all_listing_from_ch()
 
 
