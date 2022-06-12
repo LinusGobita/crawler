@@ -5,6 +5,8 @@ import random
 import pandas as pd
 import time
 
+import tools
+from Class import Listing
 import requests
 from bs4 import BeautifulSoup
 
@@ -15,26 +17,13 @@ from prettytable import PrettyTable
 base_url = "https://www.homegate.ch"
 
 class Thing:
-    def __init__(self, typ, jsonReader, sql_table, sql_row, value=0,):
+    def __init__(self, typ, jsonReader, sql_table, sql_row, value=None,):
         self.typ = typ
         self.jsonReader = jsonReader
         self.sql_table = sql_table
         self.sql_row = sql_row
         self.value = value
 
-def take_a_break(infos):
-    #Timer
-    sleep_min = 1
-    sleep_max = 5
-    sleeptimes = list(range(sleep_min, sleep_max, 1))
-    t = random.choice(sleeptimes)
-
-    while t != 0:
-        print(f"Take a Coffe for {t} secounts", end=' ')
-        time.sleep(1)
-        print(end='\r')
-        t -= 1
-    print(f'{infos}')
 
 def get_things_list_from_json():
     list_of_things = []
@@ -64,7 +53,7 @@ def grab_all_hrefs_from_ch_with_offertType(offerType):
     zip_in_ch = get_all_ch_zip()
 
     for zip in zip_in_ch:
-        take_a_break(f"next zip will be = {zip} ")
+        tools.take_a_break(f"next zip will be = {zip} ")
         href_list_ch.append(grab_all_hrefs_from_plz(zip, offerType))
 
     return href_list_ch
@@ -160,25 +149,35 @@ def get_thing_from_listing(listing, thing):
         logging.info(f"Datentyp {err} nicht gefunden {thing.value}")
 
 
-def print_things_from_one_listing(things):
-
-
-
-    table_listing = PrettyTable(['listing', 'value'])
-    table_lister = PrettyTable(['lister', 'value'])
+def from_data_to_obj(things):
 
     for thing in things:
+        #Python Dynamic Variable Name
+        globals()[thing.typ] = thing.value
 
-        if thing.sql_table == "listing":
-            table_listing.add_row([thing.typ, thing.value])
+    listing = Listing(listing_title, listing_description, listing_id, listing_offerType, listing_deleted,
+                      listing_deletedAt, listing_categories, listing_availableFrom, listing_createdAt, listing_updatedAt,
+                      listing_address_street, listing_address_country, listing_address_postalCode, listing_address_locality,
+                      listing_address_region,listing_geo, listing_price_rent_gross, listing_prices_extra, listing_prices_net,
+                      listing_price_rent_interval, listing_price_buy_gross, listing_currency, listing_characteristics_hasParking,
+                      listing_characteristics_lotSize, listing_characteristics_hasBalcony, listing_numberOfRooms, listing_yearBuilt,
+                      listing_yearLastRenovated, listing_livingSpace,listing_isChildFriendly, listing_floor,
+                      listing_prices_area, listing_img_urls,
 
-        elif thing.sql_table == "lister":
-            table_lister.add_row([thing.typ, thing.value])
+                      lister_name, lister_website, lister_phone, lister_id, lister_type, lister_address)
+    return listing
+
+
+#   lister = Lister(lister_id, lister_name)
+#    print(lister.lister_id)
+
+
+#   lister = Lister(lister_id, lister_name, lister_type)
 
 
 
-    print(table_listing)
-    print(table_lister)
+
+
 
 
 

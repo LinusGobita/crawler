@@ -1,9 +1,8 @@
 import mariadb
 import sys
-from classes.Listing import Listing
 from classes.Lister import Lister
 
-
+"""
 def mysql_connect(host, port, database, user, password):
     global cur, conn
     try:
@@ -90,3 +89,4 @@ def mysql_insert_listingPlatform(listing_id, listingPlatform_name):
 if __name__ == "__main__":
     print("This file should not be run directly")
     sys.exit(1)
+"""
