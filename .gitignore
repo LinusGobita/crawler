@@ -1,6 +1,4 @@
 /config.ini
 /logs/
 /dash.py
-
-
-
+__pycache__/
