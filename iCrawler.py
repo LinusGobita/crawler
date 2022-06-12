@@ -3,6 +3,7 @@ import crawler
 import os
 from datetime import datetime
 
+
 offert_types = ["mieten", "kaufen"]
 
 
@@ -11,9 +12,12 @@ def get_things_from_one_listing(id, offert_typ = "mieten"):
     list_of_things = crawler.get_things_list_from_json()
     listing = crawler.get_listing_from_href(f"/{offert_typ}/{str(id)}")
 
+
     for thing in list_of_things:
         crawler.get_thing_from_listing(listing, thing)
-        print(f"typ:\t{thing.typ}\t{thing.value}\tsql:\t{thing.sql_table} {thing.sql_row}")
+
+    crawler.print_things_from_one_listing(list_of_things)
+
 
 
 
@@ -38,8 +42,14 @@ def get_all_listing_from_ch():
                 all_data_from_one_listing = crawler.get_listing_from_href(href)
 
 
+                #Value wied dem thing zugewiesen
                 for thing in list_of_things:
                     crawler.get_thing_from_listing(all_data_from_one_listing, thing)
+
+                #Ausgane von listing in der Konsole
+                crawler.print_things_from_one_listing(list_of_things)
+
+
 
 
 

@@ -2,9 +2,6 @@ import json
 import logging
 import os
 import random
-import time
-
-import assign as assign
 import pandas as pd
 import time
 
@@ -13,6 +10,8 @@ from bs4 import BeautifulSoup
 
 
 ############ Get URLs ############
+from prettytable import PrettyTable
+
 base_url = "https://www.homegate.ch"
 
 class Thing:
@@ -44,9 +43,9 @@ def get_things_list_from_json():
             data = json.load(f)
             for item in data:
                 typ = item
-                data = data[typ]
-                json_Reader = data[0]
-                sql = data[1]
+                value = data[typ]
+                json_Reader = value[0]
+                sql = value[1]
                 sql_table = sql[0]
                 sql_row = sql[1]
                 thing = Thing(typ, json_Reader, sql_table, sql_row)
@@ -157,9 +156,32 @@ def get_thing_from_listing(listing, thing):
         elif leng == 5:
             thing.value = listing[thing.jsonReader[0]][thing.jsonReader[1]][thing.jsonReader[2]][thing.jsonReader[3]][thing.jsonReader[4]]
 
-        return leng
     except Exception as err:
         logging.info(f"Datentyp {err} nicht gefunden {thing.value}")
+
+
+def print_things_from_one_listing(things):
+
+
+
+    table_listing = PrettyTable(['listing', 'value'])
+    table_lister = PrettyTable(['lister', 'value'])
+
+    for thing in things:
+
+        if thing.sql_table == "listing":
+            table_listing.add_row([thing.typ, thing.value])
+
+        elif thing.sql_table == "lister":
+            table_lister.add_row([thing.typ, thing.value])
+
+
+
+    print(table_listing)
+    print(table_lister)
+
+
+
 
 ############ Get Data  Deep impact############
 class Characheristic:
