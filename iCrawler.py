@@ -1,77 +1,25 @@
 import logging
-
-from prettytable import PrettyTable
-
 import crawler
-import os
-from datetime import datetime
-
+import iDatabase
 import tools
 
-offert_types = ["mieten", "kaufen"]
+offert_types = ["rent", "buy"]
 
-def beispiel_SQL_ohne_klassen(id, offert_typ = "mieten"):
-    list_of_things = crawler.get_things_list_from_json()
-    listing = crawler.get_listing_from_href(f"/{offert_typ}/{str(id)}")
-
-
-    for thing in list_of_things:
-        crawler.get_thing_from_listing(listing, thing)
+def save_one_listing_to_txt(id, offert_typ = "rent"):
+    table = tools.things_from_one_listing_to_table(crawler.return_one_listing_from_id(id, offert_typ))
+    tools.save_to_txt(table[0], table[1], table[2])
 
 
-    ### Beispiel ohne Klassen
-    dic_listing = dict()
-    dic_lister = dict()
-
-
-    for thing in list_of_things:
-        if thing.sql_table == "listing":
-            dic_listing[thing.typ] = thing.value
-
-        elif thing.sql_table == "lister":
-            dic_lister[thing.typ] = thing.value
+def save_one_listing_to_database(id, offert_typ = "rent"):
+    list_of_things_with_value = crawler.return_one_listing_from_id(id, offert_typ)
+    iDatabase.save_things_into_db(list_of_things_with_value)
 
 
 
-    items_iterator = iter(dic_listing)
-    first_item = next(items_iterator)
-    secound_item = next(items_iterator)
-
-
-    listing_values = dic_listing.values()
-    values_interator = iter(listing_values)
-    first_value = next(values_interator)
-    secound_value = next(values_interator)
-
-    print(f"INSERTa INTO listing({first_item}, {secound_item}) \n"
-          f"VALUES ({first_value}, |||\n"
-          f"{secound_value})")
-
-
-
-
-
-
-def save_one_listing_to_txt(id, offert_typ = "mieten"):
-    list_of_things = crawler.get_things_list_from_json()
-    listing = crawler.get_listing_from_href(f"/{offert_typ}/{str(id)}")
-
-    for thing in list_of_things:
-        crawler.get_thing_from_listing(listing, thing)
-
-    tools.save_to_txt(list_of_things)
-
-
-
-
-def get_all_listing_from_ch():
+def save_all_listing_from_ch_in_database():
     counter = 0
-
-
-    list_of_things = crawler.get_things_list_from_json()
-    all_zip = crawler.get_all_ch_zip()
-
     tools.start_logging()
+    all_zip = crawler.get_all_ch_zip()
 
     for offert_type in offert_types:
         logging.info(f"Start with crawler in {offert_type}______________________________")
@@ -79,41 +27,35 @@ def get_all_listing_from_ch():
         for zip in all_zip:
             all_hrefs_from_one_plz = crawler.grab_all_hrefs_from_plz(zip, offert_type)
 
-
             for href in all_hrefs_from_one_plz:
                 counter += 1
                 tools.take_a_break(f"Downloade Nr:\t{counter}\t(zip:{zip}{href})")
+                list_of_things_with_value = crawler.return_one_listing_from_href(href)
 
-                #Get all data from Homegate to all_data_from_one_listing
-                all_data_from_one_listing = crawler.get_listing_from_href(href)
-
-                #Der Crawler wird gestartet
-                for thing in list_of_things:
-                    crawler.get_thing_from_listing(all_data_from_one_listing, thing)
+                iDatabase.save_things_into_db(list_of_things_with_value)
 
 
 
+def get_listing_categories_between_ids_as_txt(id_1, id_2):
+    all_categories = ['OPEN_SLOT', 'COMMERCIAL', 'DUPLEX', 'RETAIL',
+                      'HOUSE', 'ATTIC_FLAT', 'UNDERGROUND_SLOT', 'HOBBY_ROOM',
+                      'SHOP', 'PRACTICE', 'LOFT', 'APARTMENT', 'STUDIO', 'SINGLE_HOUSE',
+                      'FURNISHED_FLAT', 'CHALET', 'COVERED_PARKING_PLACE_BIKE', 'VILLA', 'OFFICE',
+                      'BACHELOR_FLAT', 'SINGLE_GARAGE', 'STORAGE_ROOM', 'ROOF_FLAT', 'FLAT']
 
+    i = id_1
 
-                listing_as_obj = crawler.from_data_to_obj(list_of_things)
+    tools.start_logging()
 
+    for i in range(id_1, id_2):
+        all_things_in_data  = crawler.return_one_listing_from_id(i)
+        for thing in all_things_in_data:
+            if thing.typ == "listing_categories":
+                if thing.value == None:
+                    break
+                for cat in thing.value:
+                    all_categories.append(cat)
+        tools.take_a_break(5, 10, f"ID NR = {i} found categories=: {str(list(set(all_categories)))}",)
+        i += 1
 
-
-
-
-
-
-
-
-
-
-                # Beispiel mit Klassen
-                table_listing = PrettyTable(['listing', 'value'])
-
-                table_listing.add_row(["id", listing_as_obj.listing_id])
-                table_listing.add_row(["postalCode", listing_as_obj.listing_address_postalCode])
-                table_listing.add_row(["offer type", listing_as_obj.listing_offerType])
-                table_listing.add_row(["street", listing_as_obj.listing_address_street])
-                table_listing.add_row(["img", listing_as_obj.listing_img_url])
-
-                print(table_listing)
+    tools.save_to_txt(f"categories_{str(set(all_categories))}", str(list(set(all_categories))))

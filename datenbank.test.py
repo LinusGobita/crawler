@@ -1,7 +1,7 @@
 import datenbank
 import configparser
 from classes.Lister import Lister, ListerType
-from classes.Listing2 import Listing, ListingType
+from classes.Listing import Listing, ListingType
 
 if __name__ == "__main__":
     config = configparser.ConfigParser()

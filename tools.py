@@ -1,3 +1,4 @@
+import configparser
 import datetime
 import logging
 import os
@@ -24,18 +25,16 @@ def start_logging():
         format="%(asctime)-15s %(message)s"
     )
 
-def save_to_txt(lists_as_string):
+def save_to_txt(name, sting_1, string_2 = ""):
     file_path = "./export"
     if not os.path.exists(file_path):
         os.makedirs(file_path)
 
-    table = things_from_one_listing_to_table(lists_as_string)
-
-    file = os.path.join(file_path, f"{table[0]}.txt")
+    file = os.path.join(file_path, f"{name}.txt")
     with open(f"{file}", "w+") as f:
-        f.write(str(table[1]))
+        f.write(str(sting_1))
         f.write("\n")
-        f.write(str(table[2]))
+        f.write(str(string_2))
 
 
 
@@ -67,10 +66,8 @@ def things_from_one_listing_to_table(listing):
 
 
 
-def take_a_break(infos):
+def take_a_break(sleep_min = 1, sleep_max = 5, infos = ""):
     #Timer
-    sleep_min = 1
-    sleep_max = 5
     sleeptimes = list(range(sleep_min, sleep_max, 1))
     t = random.choice(sleeptimes)
 
@@ -80,3 +77,21 @@ def take_a_break(infos):
         print(end='\r')
         t -= 1
     print(f'{infos}')
+
+
+def split_table_name_in_dic(list_of_things):
+    listing_dic = dict()
+    lister_dic = dict()
+
+    for thing in list_of_things:
+        if thing.sql_table == "listing":
+            listing_dic[thing.typ] = thing.value
+        elif thing.sql_table == "lister":
+            lister_dic[thing.typ] = thing.value
+
+    return listing_dic, lister_dic
+
+def read_config():
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    return config
