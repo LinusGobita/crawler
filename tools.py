@@ -25,42 +25,43 @@ def start_logging():
         format="%(asctime)-15s %(message)s"
     )
 
-def save_to_txt(name, sting_1, string_2 = ""):
-    file_path = "./export"
+def save_to_export(name, wirite_to_file_1, write_to_file_2 ="", file ="txt",):
+    file_path = f"./export"
     if not os.path.exists(file_path):
         os.makedirs(file_path)
 
-    file = os.path.join(file_path, f"{name}.txt")
+    file = os.path.join(file_path, f"{name}.{file}")
     with open(f"{file}", "w+") as f:
-        f.write(str(sting_1))
+        f.write(str(wirite_to_file_1))
         f.write("\n")
-        f.write(str(string_2))
-
+        f.write(str(write_to_file_2))
+        f.close()
 
 
 
 def things_from_one_listing_to_table(listing):
     #Benötigt die Things
     tables = []
-    listing_id = "none"
-    table_listing = PrettyTable(['listing', 'value'])
-    table_lister = PrettyTable(['lister', 'value'])
+    listing_id = ""
+    table_listing = PrettyTable(["datentyp","listing", "value"])
+    table_lister = PrettyTable(["datentyp", "lister", "value"])
 
     for thing in listing:
         if thing.typ == "listing_id":
             listing_id = thing.value
 
         #Nur die ersten Zeichen durchen
-        first_char = str(thing.value)[0:40]
+        first_char = str(thing.value)[0:50]
         if thing.sql_table == "listing":
-            table_listing.add_row([thing.typ, first_char])
+            table_listing.add_row([type(thing.value),thing.typ, first_char])
 
         elif thing.sql_table == "lister":
-            table_lister.add_row([thing.typ, first_char])
+            table_lister.add_row([type(thing.value), thing.typ, first_char])
 
     tables.append(listing_id)
     tables.append(table_listing)
     tables.append(table_lister)
+
     return tables
 
 

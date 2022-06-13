@@ -1,3 +1,4 @@
+import crawler
 import database
 
 
@@ -19,10 +20,13 @@ def save_things_into_db(list_of_things):
             element = ") "
 
         #special forces
-        if thing.sql_row == "str":
+        if thing.datatype == "str":
             thing.value = "'"+str(thing.value)+"'"
         elif thing.typ == "listing_categories":
             listing_categories = thing.value
+        elif thing.typ == "listing_img_urls":
+            crawler.download_img(listing_id, thing.value)
+
 
         #Normal table
         if thing.sql_table == "listing":
@@ -39,7 +43,6 @@ def save_things_into_db(list_of_things):
 
     database.save_to_one_table("listing_id", listing_id, "listing", listing_typ, listing_value)
     database.save_to_one_table("lister_id", lister_id, "lister", lister_typ, lister_value)
-    print("Listing Categories = " + listing_categories)
-
+    print("Listing Categories = " + str(listing_categories))
 
 

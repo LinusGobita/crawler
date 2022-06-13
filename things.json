@@ -2,7 +2,7 @@
     "listing_title" : [["localization","de","text","title"], ["listing", "str"]],
     "listing_title" : [["localization","de","text","title"], ["listing", "str"]],
     "listing_description" : [["localization","de","text","description"], ["listing", "str"]],
-    "listing_id" : [["id"], ["listing", "str"]],
+    "listing_id" : [["id"], ["listing", "int"]],
     "listing_offerType" : [["offerType"], ["listing","str"]],
     "listing_deleted" : [["deleted"], ["listing","bool"]],
     "listing_deletedAt" : [["text"],["listing","datetime"]],
@@ -33,7 +33,8 @@
     "listing_isChildFriendly" : [["characteristics","isChildFriendly"], ["listing", "bool"]],
     "listing_floor" : [["characteristics","floor"], ["listing", "float"]],
     "listing_prices_area" : [["prices","buy","area"], ["listing", "float"]],
-    "listing_img_urls" : [["localization","de","urls"], ["listing", "list"]],
+    "listing_attachment_urls" : [["localization","de","urls"], ["listing", "list"]],
+    "listing_img_urls" : [["localization","de","attachments"], ["listing", "list"]],
 
     "lister_name" : [["lister","legalName"], ["lister", "str"]],
     "lister_website" : [["lister","value"], ["lister", "str"]],

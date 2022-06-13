@@ -1,5 +1,7 @@
 import json
 import logging
+import os
+
 import pandas as pd
 
 import tools
@@ -13,11 +15,11 @@ from prettytable import PrettyTable
 base_url = "https://www.homegate.ch"
 
 class Thing:
-    def __init__(self, typ, jsonReader, sql_table, sql_row, value=None,):
+    def __init__(self, typ, jsonReader, sql_table, datatype, value=None, ):
         self.typ = typ
         self.jsonReader = jsonReader
         self.sql_table = sql_table
-        self.sql_row = sql_row
+        self.datatype = datatype
         self.value = value
 
 def return_one_listing_from_id(id, offert_typ ="rent"):
@@ -39,6 +41,20 @@ def return_one_listing_from_href(href):
 
     return list_of_things
 
+#Noch bischien auseinander nehmen!
+def download_img(id, urls):
+    counter = 0
+    file_path = f"./export/img/{id}"
+    if not os.path.exists(file_path):
+        os.makedirs(file_path)
+    for url in urls:
+        if url["type"] == "IMAGE":
+            file = os.path.join(file_path, f"{id}-{counter}")
+            response = requests.get(url["url"])
+            file = open(f"{file}.jpg", "wb")
+            file.write(response.content)
+            file.close()
+            counter += 1
 
 
 def get_things_list_from_json():
@@ -158,7 +174,7 @@ def queck_if_everithing_is_ok(json):
         id = json["listing"]["dataFetchError"]["listingId"]
         message = json["listing"]["dataFetchError"]["message"]
 
-        tools.save_to_txt(f"error/{id}",str(json))
+        tools.save_to_export(f"error/{id}", str(json))
         logging.info(f"inserat with id {id} has the error massage: {message}")
         return "err"
 
